@@ -1,8 +1,8 @@
-import { DataTypes, Sequelize } from "sequelize";
-import db from "../config/database.js";
+import { DataTypes, Sequelize } from 'sequelize';
+import db from '../config/database.js';
 
-const Product = db.define(
-  "products",
+export const Product = db.define(
+  'products',
   {
     id: {
       type: DataTypes.UUID,
@@ -21,11 +21,11 @@ const Product = db.define(
     deskripsi: {
       type: DataTypes.STRING
     },
-    pelapak: {
+    pelapakId: {
       type: DataTypes.STRING
     },
-    image: {
-      type: DataTypes.BLOB
+    status: {
+      type: DataTypes.STRING
     }
   },
   {
@@ -33,4 +33,29 @@ const Product = db.define(
   }
 );
 
-export default Product;
+export const Image = db.define(
+  'images',
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: Sequelize.UUIDV4,
+      primaryKey: true
+    },
+    filename: {
+      type: DataTypes.STRING
+    },
+
+    productId: {
+      type: DataTypes.UUID,
+      references: {
+        model: Product,
+        key: 'id'
+      }
+    }
+  },
+  {
+    freezeTableName: true
+  }
+);
+
+Product.hasMany(Image, { foreignKey: 'productId' });

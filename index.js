@@ -4,8 +4,8 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 dotenv.config();
 
-import Users from './models/userModels.js';
-import Product from './models/productModel.js';
+import { Users } from './models/userModels.js';
+import { Image, Product } from './models/productModel.js';
 import router from './routes/user.js';
 
 const app = express();
@@ -20,6 +20,7 @@ const startServer = async () => {
     await db.authenticate();
     await Users.sync();
     await Product.sync();
+    await Image.sync();
     console.log('Connected to the database');
 
     app.listen(PORT, () => {

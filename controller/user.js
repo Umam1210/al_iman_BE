@@ -1,11 +1,11 @@
-import bcrypt from "bcrypt";
-import Users from "../models/userModels.js";
-import jwt from "jsonwebtoken";
+import bcrypt from 'bcrypt';
+import { Users } from '../models/userModels.js';
+import jwt from 'jsonwebtoken';
 
 export const getUsers = async (req, res) => {
   try {
     const users = await Users.findAll({
-      attributes: ["id", "name", "email"]
+      attributes: ['id', 'name', 'email']
     });
     res.json(users);
   } catch (error) {
@@ -20,7 +20,7 @@ export const register = async (req, res) => {
     // Periksa apakah pengguna dengan email yang sama sudah terdaftar dalam database
     const existingUser = await Users.findOne({ where: { email } });
     if (existingUser) {
-      return res.status(400).json({ error: "Email sudah terdaftar" });
+      return res.status(400).json({ error: 'Email sudah terdaftar' });
     }
 
     // Enkripsi password
@@ -39,12 +39,12 @@ export const register = async (req, res) => {
       alamat
     });
 
-    res.status(201).json({ message: "Registrasi berhasil", Users: newUser });
+    res.status(201).json({ message: 'Registrasi berhasil', Users: newUser });
   } catch (error) {
     console.error(error);
     res
       .status(500)
-      .json({ error: "Terjadi kesalahan saat melakukan registrasi", error: error.message });
+      .json({ error: 'Terjadi kesalahan saat melakukan registrasi', errorMessage: error.message });
   }
 };
 
@@ -57,23 +57,23 @@ export const Login = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({ msg: "Email tidak ditemukan" });
+      return res.status(404).json({ msg: 'Email tidak ditemukan' });
     }
 
     const match = await bcrypt.compare(req.body.password, user.password);
     if (!match) {
-      return res.status(400).json({ msg: "Password salah" });
+      return res.status(400).json({ msg: 'Password salah' });
     }
 
     const userId = user.id;
     const name = user.name;
-    const email = user.email;
+    // const email = user.email;
     const userRole = user.role; // Mengambil nilai userRole dari data pengguna yang masuk
     const accessToken = jwt.sign({ userId, name }, process.env.ACCESS_TOKEN_SECRET, {
-      expiresIn: "20s"
+      expiresIn: '20s'
     });
     const refreshToken = jwt.sign({ userId, name }, process.env.ACCESS_TOKEN_SECRET, {
-      expiresIn: "1d"
+      expiresIn: '1d'
     });
     await Users.update(
       { refreshToken: accessToken },
@@ -83,12 +83,12 @@ export const Login = async (req, res) => {
         }
       }
     );
-    res.cookie("refreshToken", refreshToken, {
+    res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000,
       secure: true
     });
-    res.cookie("userRole", userRole, {
+    res.cookie('userRole', userRole, {
       // Menambahkan cookie userRole dengan nilai dari data pengguna yang masuk
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000,
@@ -96,7 +96,7 @@ export const Login = async (req, res) => {
     });
     res.json({ accessToken });
   } catch (error) {
-    res.status(500).json({ msg: "Terjadi kesalahan server", error: error.message });
+    res.status(500).json({ msg: 'Terjadi kesalahan server', error: error.message });
   }
 };
 
@@ -105,14 +105,14 @@ export const logout = async (req, res) => {
     // Lakukan sesuatu untuk menghapus token refresh dari database atau menyimpan status logout pengguna
 
     // Menghapus semua cookie pada sisi klien
-    res.clearCookie("refreshToken");
-    res.clearCookie("userRole");
+    res.clearCookie('refreshToken');
+    res.clearCookie('userRole');
     // Jika Anda memiliki cookie lain yang ingin dihapus, tambahkan pernyataan res.clearCookie sesuai kebutuhan
 
-    res.status(200).json({ msg: "Logout berhasil" });
+    res.status(200).json({ msg: 'Logout berhasil' });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: "Terjadi kesalahan server", error: error.message });
+    res.status(500).json({ error: 'Terjadi kesalahan server', errorMessage: error.message });
   }
 };
 
@@ -122,17 +122,17 @@ export const getUserById = async (req, res) => {
 
     // Mencari pengguna berdasarkan ID
     const user = await Users.findByPk(userId, {
-      attributes: ["id", "name", "email", "role", "kontak", "alamat"]
+      attributes: ['id', 'name', 'email', 'role', 'kontak', 'alamat']
     });
 
     if (!user) {
-      return res.status(404).json({ error: "Pengguna tidak ditemukan" });
+      return res.status(404).json({ error: 'Pengguna tidak ditemukan' });
     }
 
     res.json(user);
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: "Terjadi kesalahan server", error: error.message });
+    res.status(500).json({ error: 'Terjadi kesalahan server', errorMessage: error.message });
   }
 };
 
@@ -145,7 +145,7 @@ export const editUser = async (req, res) => {
     const user = await Users.findByPk(userId);
 
     if (!user) {
-      return res.status(404).json({ error: "Pengguna tidak ditemukan" });
+      return res.status(404).json({ error: 'Pengguna tidak ditemukan' });
     }
 
     // Mengedit atribut-atribut pengguna
@@ -161,6 +161,6 @@ export const editUser = async (req, res) => {
     res.json(user);
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: "Terjadi kesalahan server", error: error.message });
+    res.status(500).json({ error: 'Terjadi kesalahan server', errorMessage: error.message });
   }
 };

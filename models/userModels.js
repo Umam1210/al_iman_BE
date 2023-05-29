@@ -1,9 +1,9 @@
-import { DataTypes, Sequelize } from "sequelize";
-import db from "../config/database.js";
-import Product from "./productModel.js";
+import { DataTypes, Sequelize } from 'sequelize';
+import db from '../config/database.js';
+import { Product } from './productModel.js';
 
-const Users = db.define(
-  "users",
+export const Users = db.define(
+  'users',
   {
     id: {
       type: DataTypes.UUID,
@@ -41,12 +41,10 @@ const Users = db.define(
 );
 
 Users.hasMany(Product, {
-  foreignKey: "userId",
-  onDelete: "CASCADE"
+  foreignKey: 'userId',
+  onDelete: 'CASCADE'
 });
 
 Product.belongsTo(Users, {
-  foreignKey: "userId"
+  foreignKey: 'userId'
 });
-
-export default Users;
