@@ -22,7 +22,7 @@ export const Product = db.define(
       type: DataTypes.STRING
     },
     pelapakId: {
-      type: DataTypes.STRING
+      type: DataTypes.UUID
     },
     status: {
       type: DataTypes.STRING
@@ -44,7 +44,9 @@ export const Image = db.define(
     filename: {
       type: DataTypes.STRING
     },
-
+    url: {
+      type: DataTypes.STRING
+    },
     productId: {
       type: DataTypes.UUID,
       references: {

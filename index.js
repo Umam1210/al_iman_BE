@@ -6,13 +6,14 @@ dotenv.config();
 
 import { Users } from './models/userModels.js';
 import { Image, Product } from './models/productModel.js';
-import router from './routes/user.js';
+import router from './routes/index.js';
 
 const app = express();
 const { PORT } = process.env;
 
 app.use(express.json());
 app.use(cookieParser());
+app.use('/uploads', express.static('uploads'));
 app.use(router);
 
 const startServer = async () => {

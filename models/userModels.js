@@ -17,7 +17,8 @@ export const Users = db.define(
       type: DataTypes.STRING
     },
     no_kk: {
-      type: DataTypes.STRING
+      type: DataTypes.STRING,
+      unique: true
     },
     password: {
       type: DataTypes.STRING
@@ -41,10 +42,14 @@ export const Users = db.define(
 );
 
 Users.hasMany(Product, {
-  foreignKey: 'userId',
-  onDelete: 'CASCADE'
+  foreignKey: 'pelapakId',
+  as: 'products',
+  onDelete: 'CASCADE',
+  onUpdate: 'CASCADE'
 });
 
 Product.belongsTo(Users, {
-  foreignKey: 'userId'
+  foreignKey: 'pelapakId',
+  as: 'user',
+  targetKey: 'id'
 });

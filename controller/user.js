@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import { Users } from '../models/userModels.js';
 import jwt from 'jsonwebtoken';
 
+// mengambil semua data users
 export const getUsers = async (req, res) => {
   try {
     const users = await Users.findAll({
@@ -13,6 +14,7 @@ export const getUsers = async (req, res) => {
   }
 };
 
+// registrasi
 export const register = async (req, res) => {
   const { name, email, password, role, no_kk, kontak, alamat } = req.body;
 
@@ -21,6 +23,10 @@ export const register = async (req, res) => {
     const existingUser = await Users.findOne({ where: { email } });
     if (existingUser) {
       return res.status(400).json({ error: 'Email sudah terdaftar' });
+    }
+    const existingNoKK = await Users.findOne({ where: { no_kk } });
+    if (existingNoKK) {
+      return res.status(400).json({ error: 'Nomor KK sudah terdaftar' });
     }
 
     // Enkripsi password
@@ -48,6 +54,7 @@ export const register = async (req, res) => {
   }
 };
 
+// login
 export const Login = async (req, res) => {
   try {
     const user = await Users.findOne({
@@ -100,6 +107,7 @@ export const Login = async (req, res) => {
   }
 };
 
+// logout
 export const logout = async (req, res) => {
   try {
     // Lakukan sesuatu untuk menghapus token refresh dari database atau menyimpan status logout pengguna
@@ -116,6 +124,7 @@ export const logout = async (req, res) => {
   }
 };
 
+// mengambil data user sesuai dengan id
 export const getUserById = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -136,6 +145,7 @@ export const getUserById = async (req, res) => {
   }
 };
 
+// edit User
 export const editUser = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -157,7 +167,7 @@ export const editUser = async (req, res) => {
 
     // Menyimpan perubahan ke database
     await user.save();
-
+    console.log(req.headers);
     res.json(user);
   } catch (error) {
     console.log(error);
