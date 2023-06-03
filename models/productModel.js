@@ -23,9 +23,6 @@ export const Product = db.define(
     },
     pelapakId: {
       type: DataTypes.UUID
-    },
-    status: {
-      type: DataTypes.STRING
     }
   },
   {

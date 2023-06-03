@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { Users } from '../models/userModels.js';
+import { User } from '../models/userModels.js';
 
 export const authenticateToken = (req, res, next) => {
   try {
@@ -32,7 +32,7 @@ export const refresh = async (req, res) => {
       return res.status(401).json({ error: 'Token refresh tidak ditemukan' });
     }
 
-    const user = await Users.findOne({
+    const user = await User.findOne({
       where: {
         refresh_token: refreshToken
       }

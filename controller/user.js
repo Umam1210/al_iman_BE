@@ -1,11 +1,11 @@
 import bcrypt from 'bcrypt';
-import { Users } from '../models/userModels.js';
+import { User } from '../models/userModels.js';
 import jwt from 'jsonwebtoken';
 
 // mengambil semua data users
 export const getUsers = async (req, res) => {
   try {
-    const users = await Users.findAll({
+    const users = await User.findAll({
       attributes: ['id', 'name', 'email']
     });
     res.json(users);
@@ -20,11 +20,11 @@ export const register = async (req, res) => {
 
   try {
     // Periksa apakah pengguna dengan email yang sama sudah terdaftar dalam database
-    const existingUser = await Users.findOne({ where: { email } });
+    const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       return res.status(400).json({ error: 'Email sudah terdaftar' });
     }
-    const existingNoKK = await Users.findOne({ where: { no_kk } });
+    const existingNoKK = await User.findOne({ where: { no_kk } });
     if (existingNoKK) {
       return res.status(400).json({ error: 'Nomor KK sudah terdaftar' });
     }
@@ -35,7 +35,7 @@ export const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // Buat pengguna baru
-    const newUser = await Users.create({
+    const newUser = await User.create({
       name,
       email,
       password: hashedPassword,
@@ -45,7 +45,7 @@ export const register = async (req, res) => {
       alamat
     });
 
-    res.status(201).json({ message: 'Registrasi berhasil', Users: newUser });
+    res.status(201).json({ message: 'Registrasi berhasil', User: newUser });
   } catch (error) {
     console.error(error);
     res
@@ -57,7 +57,7 @@ export const register = async (req, res) => {
 // login
 export const Login = async (req, res) => {
   try {
-    const user = await Users.findOne({
+    const user = await User.findOne({
       where: {
         email: req.body.email
       }
@@ -82,7 +82,7 @@ export const Login = async (req, res) => {
     const refreshToken = jwt.sign({ userId, name }, process.env.ACCESS_TOKEN_SECRET, {
       expiresIn: '1d'
     });
-    await Users.update(
+    await User.update(
       { refreshToken: accessToken },
       {
         where: {
@@ -130,7 +130,7 @@ export const getUserById = async (req, res) => {
     const { userId } = req.params;
 
     // Mencari pengguna berdasarkan ID
-    const user = await Users.findByPk(userId, {
+    const user = await User.findByPk(userId, {
       attributes: ['id', 'name', 'email', 'role', 'kontak', 'alamat']
     });
 
@@ -152,7 +152,7 @@ export const editUser = async (req, res) => {
     const { name, email, role, kontak, alamat } = req.body;
 
     // Mencari pengguna berdasarkan ID
-    const user = await Users.findByPk(userId);
+    const user = await User.findByPk(userId);
 
     if (!user) {
       return res.status(404).json({ error: 'Pengguna tidak ditemukan' });
@@ -172,5 +172,23 @@ export const editUser = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: 'Terjadi kesalahan server', errorMessage: error.message });
+  }
+};
+
+// delete user
+export const deleteUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return res.status(404).json({ errorMessage: 'Pengguna tidak ditemukan' });
+    }
+
+    await user.destroy();
+    res.json({ message: 'Pengguna berhasil dihapus' });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ errorMessage: error.message });
   }
 };

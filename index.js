@@ -4,8 +4,6 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 dotenv.config();
 
-import { Users } from './models/userModels.js';
-import { Image, Product } from './models/productModel.js';
 import router from './routes/index.js';
 
 const app = express();
@@ -13,15 +11,16 @@ const { PORT } = process.env;
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static('uploads'));
 app.use(router);
 
 const startServer = async () => {
   try {
     await db.authenticate();
-    await Users.sync();
-    await Product.sync();
-    await Image.sync();
+    (async () => {
+      await db.sync();
+    })();
     console.log('Connected to the database');
 
     app.listen(PORT, () => {

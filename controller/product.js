@@ -1,6 +1,6 @@
 import multer from 'multer';
 import { Image, Product } from '../models/productModel.js';
-import { Users } from '../models/userModels.js';
+import { User } from '../models/userModels.js';
 import path from 'path';
 
 // mengambil semua data product
@@ -9,10 +9,31 @@ export const getProducts = async (req, res) => {
     const products = await Product.findAll({
       include: [
         { model: Image, attributes: ['filename', 'url'] },
-        { model: Users, as: 'user', attributes: ['name', 'email'] }
+        { model: User, as: 'user', attributes: ['name', 'email'] }
       ]
     });
     res.json(products);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ errorMessage: error.message });
+  }
+};
+
+// mengambil data sesuai dengan id
+export const getProductByid = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    // mencari data berdasarka id
+    const product = await Product.findByPk(productId, {
+      include: [
+        { model: Image, attributes: ['filename', 'url'] },
+        { model: User, as: 'user', attributes: ['name', 'email'] }
+      ]
+    });
+    if (!product) {
+      return res.status(404).json({ error: 'product tidak ditemukan' });
+    }
+    res.json(product);
   } catch (error) {
     console.log(error);
     res.status(500).json({ errorMessage: error.message });
@@ -40,7 +61,7 @@ export const addProduct = async (req, res) => {
     const { name, harga, stock, deskripsi, pelapakId, status } = req.body;
 
     // Mencari pengguna berdasarkan pelapakId
-    const user = await Users.findOne({
+    const user = await User.findOne({
       where: { id: pelapakId },
       attributes: ['name', 'email']
     });
@@ -108,7 +129,7 @@ export const getProductByIdUser = async (req, res) => {
     const { pelapakId } = req.params;
 
     // Mencari pelapak berdasarkan ID pengguna
-    const pelapak = await Users.findOne({
+    const pelapak = await User.findOne({
       where: { id: pelapakId }
     });
 
@@ -123,6 +144,102 @@ export const getProductByIdUser = async (req, res) => {
     });
 
     res.json(products);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ errorMessage: error.message });
+  }
+};
+
+// hapus data sesuai dengan id
+export const deleteProductById = async (req, res) => {
+  try {
+    const { productId } = req.params;
+
+    // Mencari produk berdasarkan ID
+    const product = await Product.findByPk(productId);
+
+    if (!product) {
+      return res.status(404).json({ errorMessage: 'Produk tidak ditemukan' });
+    }
+
+    // Menghapus produk
+    await product.destroy();
+
+    res.json({ message: 'Produk berhasil dihapus' });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ errorMessage: error.message });
+  }
+};
+
+// Edit Product by Id
+export const editProductById = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const { name, harga, stock, deskripsi, pelapakId, status } = req.body;
+
+    console.log('Request Body:', req.body); // Menampilkan nilai req.body
+    console.log('Request params:', req.params); // Menampilkan nilai req.body
+
+    // Mencari produk berdasarkan ID
+    const product = await Product.findByPk(productId);
+
+    if (!product) {
+      return res.status(404).json({ errorMessage: 'Produk tidak ditemukan' });
+    }
+    // Mengedit atribut-atribut produk
+    product.name = name;
+    product.harga = harga;
+    product.stock = stock;
+    product.status = status;
+    product.deskripsi = deskripsi;
+    product.pelapakId = pelapakId;
+
+    // Menyimpan perubahan ke database
+    await product.save();
+
+    // Mengupdate gambar produk jika ada perubahan
+    const { files } = req;
+    if (files && files.length > 0) {
+      // Menghapus gambar-gambar produk yang ada sebelumnya
+      await Image.destroy({ where: { productId } });
+
+      const imageUrls = [];
+      for (const file of files) {
+        const ext = path.extname(file.originalname);
+        const fileName = file.filename;
+        const url = `${req.protocol}://${req.get('host')}/uploads/${fileName}`;
+        const allowedTypes = ['.png', '.jpg', '.jpeg'];
+
+        if (!allowedTypes.includes(ext.toLowerCase())) {
+          return res.status(422).json({ errorMessage: 'Jenis file gambar tidak valid' });
+        }
+
+        if (file.size > 5000000) {
+          return res.status(422).json({ errorMessage: 'Ukuran gambar harus kurang dari 5 MB' });
+        }
+
+        imageUrls.push(url);
+
+        await Image.create({
+          filename: fileName,
+          data: file.buffer,
+          productId: product.id,
+          url: url
+        });
+      }
+
+      res.json({
+        message: 'Produk berhasil diubah',
+        product: product.toJSON(),
+        imageUrls
+      });
+    } else {
+      res.json({
+        message: 'Produk berhasil diubah',
+        product: product.toJSON()
+      });
+    }
   } catch (error) {
     console.log(error);
     res.status(500).json({ errorMessage: error.message });

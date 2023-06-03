@@ -2,8 +2,8 @@ import { DataTypes, Sequelize } from 'sequelize';
 import db from '../config/database.js';
 import { Product } from './productModel.js';
 
-export const Users = db.define(
-  'users',
+export const User = db.define(
+  'user',
   {
     id: {
       type: DataTypes.UUID,
@@ -41,14 +41,14 @@ export const Users = db.define(
   }
 );
 
-Users.hasMany(Product, {
+User.hasMany(Product, {
   foreignKey: 'pelapakId',
   as: 'products',
   onDelete: 'CASCADE',
   onUpdate: 'CASCADE'
 });
 
-Product.belongsTo(Users, {
+Product.belongsTo(User, {
   foreignKey: 'pelapakId',
   as: 'user',
   targetKey: 'id'
