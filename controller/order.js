@@ -39,22 +39,7 @@ export const getOrderById = async (req, res) => {
 
 export const createOrder = async (req, res) => {
   try {
-    const { orderId, userId, productId, banyak, status, tanggal_ambil, jam_ambil, voucherId } =
-      req.body;
-
-    // Periksa apakah voucherId yang diberikan ada dalam database voucher
-    const voucher = await Voucher.findByPk(voucherId);
-
-    if (!voucher) {
-      return res.status(404).json({ errorMessage: 'Voucher tidak ditemukan' });
-    }
-
-    // Periksa apakah voucher telah digunakan dalam order sebelumnya
-    const existingOrder = await Order.findOne({ where: { voucherId } });
-
-    if (existingOrder) {
-      return res.status(400).json({ errorMessage: 'Voucher telah digunakan sebelumnya' });
-    }
+    const { userId, productId, banyak, status, tanggal_ambil, jam_ambil, voucherId } = req.body;
 
     const product = await Product.findByPk(productId);
 
@@ -63,16 +48,26 @@ export const createOrder = async (req, res) => {
     }
 
     let total_harga = product.harga * banyak;
+    let total_bayar = total_harga; // Menggunakan total harga sebagai total bayar awal
 
-    // Mengurangi jumlah voucher dari total harga jika voucher tersedia
-    if (voucher) {
-      total_harga -= voucher.jumlah;
-    }
+    let voucher = null;
+    if (voucherId) {
+      voucher = await Voucher.findByPk(voucherId);
 
-    // Mengubah total harga menjadi 0 jika nilainya negatif
-    if (total_harga < 0) {
-      total_harga = 0;
+      if (!voucher) {
+        return res.status(404).json({ errorMessage: 'Voucher tidak ditemukan' });
+      }
+
+      // Mengurangi nilai voucher dari total bayar
+      total_bayar -= voucher.jumlah;
+
+      // Jika total bayar negatif, maka ubah menjadi 0
+      if (total_bayar < 0) {
+        total_bayar = 0;
+      }
     }
+    const orderCount = await Order.count(); // Menghitung jumlah order yang sudah ada
+    const orderId = `ORD${orderCount + 1}`; // Membuat orderId dengan format "ORD" + nomor urut
 
     const order = await Order.create({
       orderId,
@@ -80,10 +75,13 @@ export const createOrder = async (req, res) => {
       productId,
       banyak,
       total_harga,
+      total_bayar,
       status,
+      tanggal_pesan: new Date(),
       tanggal_ambil,
       jam_ambil,
-      voucherId: voucher ? voucher.id : null
+      voucherId: voucher ? voucher.id : null,
+      usedVoucher: !!voucherId
     });
 
     res.status(201).json({ message: 'Order berhasil dibuat', order });
@@ -92,46 +90,6 @@ export const createOrder = async (req, res) => {
     res.status(500).json({ errorMessage: error.message });
   }
 };
-
-// export const createOrder = async (req, res) => {
-//   try {
-//     const { orderId, userId, productId, banyak, status, tanggal_ambil, jam_ambil, voucherId } =
-//       req.body;
-//     const voucher = await Voucher.findByPk(voucherId);
-
-//     const product = await Product.findByPk(productId);
-
-//     if (!product) {
-//       return res.status(404).json({ errorMessage: 'Produk tidak ditemukan' });
-//     }
-//     let total_harga = product.harga * banyak;
-//     if (voucher) {
-//       total_harga -= voucher.jumlah;
-//     }
-
-//     // Mengubah total harga menjadi 0 jika nilainya negatif
-//     if (total_harga < 0) {
-//       total_harga = 0;
-//     }
-
-//     const order = await Order.create({
-//       orderId,
-//       userId,
-//       productId,
-//       banyak,
-//       total_harga,
-//       status,
-//       tanggal_ambil,
-//       jam_ambil,
-//       voucherId: voucher ? voucher.id : null
-//     });
-
-//     res.status(201).json({ message: 'Order berhasil dibuat', order });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).json({ errorMessage: error.message });
-//   }
-// };
 
 export const deleteOrderById = async (req, res) => {
   try {

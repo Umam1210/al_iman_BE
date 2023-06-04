@@ -28,8 +28,14 @@ export const Order = db.define(
     total_harga: {
       type: DataTypes.FLOAT
     },
+    total_bayar: {
+      type: DataTypes.FLOAT
+    },
     status: {
       type: DataTypes.STRING
+    },
+    tanggal_pesan: {
+      type: DataTypes.DATE
     },
     tanggal_ambil: {
       type: DataTypes.DATEONLY
@@ -40,6 +46,10 @@ export const Order = db.define(
     voucherId: {
       type: DataTypes.UUID,
       allowNull: true
+    },
+    usedVoucher: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
     }
   },
   {

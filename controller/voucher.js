@@ -27,12 +27,20 @@ export const getVoucherById = async (req, res) => {
 
 export const createVoucher = async (req, res) => {
   try {
-    const { jumlah, name } = req.body;
+    const { jumlah, name, userId } = req.body;
 
-    // Membuat voucher baru
+    let user = null;
+    if (userId) {
+      user = await User.findByPk(userId);
+      if (!user) {
+        return res.status(404).json({ errorMessage: 'User tidak ditemukan' });
+      }
+    }
+
     const voucher = await Voucher.create({
       jumlah,
-      name
+      name,
+      userId: user ? user.id : null
     });
 
     res.status(201).json({ message: 'Voucher berhasil dibuat', voucher });
@@ -45,7 +53,7 @@ export const createVoucher = async (req, res) => {
 export const editVoucherById = async (req, res) => {
   try {
     const { voucherId } = req.params;
-    const { jumlah, name } = req.body;
+    const { jumlah, name, userId } = req.body;
 
     // Mencari voucher berdasarkan ID
     const voucher = await Voucher.findByPk(voucherId);
@@ -57,6 +65,16 @@ export const editVoucherById = async (req, res) => {
     // Mengedit atribut-atribut voucher
     voucher.jumlah = jumlah;
     voucher.name = name;
+
+    if (userId) {
+      const user = await User.findByPk(userId);
+      if (!user) {
+        return res.status(404).json({ errorMessage: 'User tidak ditemukan' });
+      }
+      voucher.userId = user.id;
+    } else {
+      voucher.userId = null;
+    }
 
     // Menyimpan perubahan ke database
     await voucher.save();
