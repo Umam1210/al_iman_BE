@@ -18,6 +18,10 @@ export const Voucher = db.define(
     name: {
       type: DataTypes.STRING,
       allowNull: false
+    },
+    isUsed: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
     }
   },
   {

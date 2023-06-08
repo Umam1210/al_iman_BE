@@ -43,6 +43,9 @@ export const Order = db.define(
     jam_ambil: {
       type: DataTypes.TIME
     },
+    catatan: {
+      type: DataTypes.STRING(500)
+    },
     voucherId: {
       type: DataTypes.UUID,
       allowNull: true

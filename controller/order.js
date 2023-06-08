@@ -8,7 +8,8 @@ export const getOrders = async (req, res) => {
     const orders = await Order.findAll({
       include: [
         { model: User, attributes: ['name', 'email'] },
-        { model: Product, as: 'product', attributes: ['name', 'harga'] }
+        { model: Product, as: 'product', attributes: ['name', 'harga'] },
+        { model: Voucher, as: 'voucher', attributes: ['jumlah', 'name'] }
       ]
     });
     res.json(orders);
@@ -24,7 +25,8 @@ export const getOrderById = async (req, res) => {
     const order = await Order.findByPk(orderId, {
       include: [
         { model: User, attributes: ['name', 'email'] },
-        { model: Product, as: 'product', attributes: ['name', 'harga'] }
+        { model: Product, as: 'product', attributes: ['name', 'harga'] },
+        { model: Voucher, as: 'voucher', attributes: ['jumlah', 'name'] }
       ]
     });
     if (!order) {
@@ -39,7 +41,8 @@ export const getOrderById = async (req, res) => {
 
 export const createOrder = async (req, res) => {
   try {
-    const { userId, productId, banyak, status, tanggal_ambil, jam_ambil, voucherId } = req.body;
+    const { userId, productId, banyak, status, tanggal_ambil, jam_ambil, voucherId, catatan } =
+      req.body;
 
     const product = await Product.findByPk(productId);
 
@@ -58,6 +61,10 @@ export const createOrder = async (req, res) => {
         return res.status(404).json({ errorMessage: 'Voucher tidak ditemukan' });
       }
 
+      if (voucher.isUsed) {
+        return res.status(400).json({ errorMessage: 'Voucher Sudah Digunakan' });
+      }
+
       // Mengurangi nilai voucher dari total bayar
       total_bayar -= voucher.jumlah;
 
@@ -65,6 +72,8 @@ export const createOrder = async (req, res) => {
       if (total_bayar < 0) {
         total_bayar = 0;
       }
+      voucher.isUsed = true;
+      await voucher.save();
     }
     const orderCount = await Order.count(); // Menghitung jumlah order yang sudah ada
     const orderId = `ORD${orderCount + 1}`; // Membuat orderId dengan format "ORD" + nomor urut
@@ -80,6 +89,7 @@ export const createOrder = async (req, res) => {
       tanggal_pesan: new Date(),
       tanggal_ambil,
       jam_ambil,
+      catatan,
       voucherId: voucher ? voucher.id : null,
       usedVoucher: !!voucherId
     });
@@ -109,8 +119,17 @@ export const deleteOrderById = async (req, res) => {
 
 export const editOrderById = async (req, res) => {
   try {
-    const { orderId, userId, productId, banyak, status, tanggal_ambil, jam_ambil, voucherId } =
-      req.body;
+    const {
+      orderId,
+      userId,
+      productId,
+      banyak,
+      status,
+      tanggal_ambil,
+      jam_ambil,
+      voucherId,
+      catatan
+    } = req.body;
     const { orderId: orderToUpdateId } = req.params;
     const order = await Order.findOne({ where: { orderId: orderToUpdateId } });
 
@@ -137,6 +156,7 @@ export const editOrderById = async (req, res) => {
       status,
       tanggal_ambil,
       jam_ambil,
+      catatan,
       voucherId: voucher ? voucher.id : null
     });
 
@@ -173,3 +193,24 @@ export const getMonthlySales = async (req, res) => {
     res.status(500).json({ errorMessage: error.message });
   }
 };
+
+// let voucher = null;
+//     if (voucherId) {
+//       voucher = await Voucher.findByPk(voucherId);
+
+//       if (!voucher) {
+//         return res.status(404).json({ errorMessage: 'Voucher tidak ditemukan' });
+//       }
+
+//       // Mengurangi nilai voucher dari total bayar
+//       total_bayar -= voucher.jumlah;
+
+//       // Jika total bayar negatif, maka ubah menjadi 0
+//       if (total_bayar < 0) {
+//         total_bayar = 0;
+//       }
+
+//       // Mengubah status voucher menjadi "digunakan" (isUsed: true)
+//       voucher.isUsed = true;
+//       await voucher.save();
+//     }

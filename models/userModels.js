@@ -53,3 +53,4 @@ Product.belongsTo(User, {
   as: 'user',
   targetKey: 'id'
 });
+
