@@ -8,7 +8,7 @@ import {
   logout,
   register
 } from '../controller/user.js';
-import { authenticateToken, refresh } from '../middleware/refresh.js';
+import { authenticateToken, getToken, refresh } from '../middleware/refresh.js';
 import {
   addProduct,
   deleteProductById,
@@ -40,6 +40,7 @@ const router = express.Router();
 router.get('/api/v1/token', refresh);
 router.get('/api/v1/getAllUsers', getUsers);
 router.get('/api/v1/getUser/:userId', getUserById);
+router.get('/api/v1/getToken/:userId', getToken);
 router.post('/api/v1/user/register', register);
 router.post('/api/v1/login', Login);
 router.post('/api/v1/logout', logout);

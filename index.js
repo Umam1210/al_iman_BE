@@ -10,7 +10,18 @@ import router from './routes/index.js';
 const app = express();
 const { PORT } = process.env;
 
-app.use(cors());
+app.use(
+  cors({
+    origin: 'http://localhost:3000',
+    credentials: true
+  })
+);
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  // Atur header lain yang diperlukan sesuai kebutuhan aplikasi Anda
+  next();
+});
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));

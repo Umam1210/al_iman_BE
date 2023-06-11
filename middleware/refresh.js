@@ -59,3 +59,25 @@ export const refresh = async (req, res) => {
     res.sendStatus(500);
   }
 };
+
+export const getToken = async (req, res) => {
+  try {
+    const userId = req.params.userId; // Ganti dengan properti yang sesuai untuk mengambil ID pengguna dari body permintaan
+
+    const user = await User.findOne({
+      where: {
+        id: userId
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({ msg: 'Pengguna tidak ditemukan' });
+    }
+
+    const token = user.refreshToken; // Ganti dengan field token yang sesuai di model pengguna
+
+    res.json({ token });
+  } catch (error) {
+    res.status(500).json({ msg: 'Terjadi kesalahan server', error: error.message });
+  }
+};

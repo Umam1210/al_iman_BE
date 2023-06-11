@@ -72,6 +72,7 @@ export const Login = async (req, res) => {
       return res.status(400).json({ msg: 'Password salah' });
     }
 
+    const date = new Date();
     const userId = user.id;
     const name = user.name;
     // const email = user.email;
@@ -79,11 +80,15 @@ export const Login = async (req, res) => {
     const accessToken = jwt.sign({ userId, name }, process.env.ACCESS_TOKEN_SECRET, {
       expiresIn: '20s'
     });
-    const refreshToken = jwt.sign({ userId, name }, process.env.ACCESS_TOKEN_SECRET, {
-      expiresIn: '1d'
-    });
+    const refreshToken = jwt.sign(
+      { userId, name, date, userRole },
+      process.env.ACCESS_TOKEN_SECRET,
+      {
+        expiresIn: '1d'
+      }
+    );
     await User.update(
-      { refreshToken: accessToken },
+      { refreshToken: refreshToken },
       {
         where: {
           id: userId
@@ -91,17 +96,23 @@ export const Login = async (req, res) => {
       }
     );
     res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
+      httpOnly: false,
       maxAge: 24 * 60 * 60 * 1000,
-      secure: true
+      secure: false
     });
-    res.cookie('userRole', userRole, {
-      // Menambahkan cookie userRole dengan nilai dari data pengguna yang masuk
-      httpOnly: true,
+    res.cookie('Role', userRole, {
+      httpOnly: false,
       maxAge: 24 * 60 * 60 * 1000,
-      secure: true
+      secure: false
     });
-    res.json({ accessToken });
+    res.cookie('userId', userId, {
+      httpOnly: false,
+      maxAge: 24 * 60 * 60 * 1000,
+      secure: false
+    });
+
+    console.log('Cookies:', req.cookies);
+    res.json({ accessToken, userRole });
   } catch (error) {
     res.status(500).json({ msg: 'Terjadi kesalahan server', error: error.message });
   }
@@ -110,13 +121,9 @@ export const Login = async (req, res) => {
 // logout
 export const logout = async (req, res) => {
   try {
-    // Lakukan sesuatu untuk menghapus token refresh dari database atau menyimpan status logout pengguna
-
     // Menghapus semua cookie pada sisi klien
     res.clearCookie('refreshToken');
     res.clearCookie('userRole');
-    // Jika Anda memiliki cookie lain yang ingin dihapus, tambahkan pernyataan res.clearCookie sesuai kebutuhan
-
     res.status(200).json({ msg: 'Logout berhasil' });
   } catch (error) {
     console.log(error);
@@ -190,5 +197,28 @@ export const deleteUser = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ errorMessage: error.message });
+  }
+};
+
+export const refreshToken = async (req, res) => {
+  const { userId } = req.body;
+
+  try {
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return res.status(404).json({ msg: 'Pengguna tidak ditemukan' });
+    }
+
+    const accessToken = jwt.sign(
+      { userId: user.id, name: user.name },
+      process.env.ACCESS_TOKEN_SECRET,
+      {
+        expiresIn: '20s'
+      }
+    );
+    res.json({ accessToken });
+  } catch (error) {
+    res.status(500).json({ msg: 'Terjadi kesalahan server', error: error.message });
   }
 };
