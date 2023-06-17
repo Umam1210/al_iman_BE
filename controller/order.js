@@ -73,6 +73,7 @@ export const createOrder = async (req, res) => {
         total_bayar = 0;
       }
       voucher.isUsed = true;
+      voucher.usedAt = new Date();
       await voucher.save();
     }
     const orderCount = await Order.count(); // Menghitung jumlah order yang sudah ada

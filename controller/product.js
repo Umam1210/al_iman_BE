@@ -2,6 +2,7 @@ import multer from 'multer';
 import { Image, Product } from '../models/productModel.js';
 import { User } from '../models/userModels.js';
 import path from 'path';
+import { Op } from 'sequelize';
 
 // mengambil semua data product
 export const getProducts = async (req, res) => {
@@ -243,5 +244,22 @@ export const editProductById = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ errorMessage: error.message });
+  }
+};
+
+export const searchProductByName = async (req, res) => {
+  try {
+    const { productName } = req.query;
+
+    // Mencari produk berdasarkan nama produk
+    const products = await Product.findAll({
+      where: { name: { [Op.like]: `%${productName}%` } },
+      include: [{ model: Image, attributes: ['filename', 'url'] }]
+    });
+
+    res.json(products);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ errorMessage: 'Terjadi kesalahan pada server' });
   }
 };

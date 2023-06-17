@@ -16,7 +16,7 @@ export const Product = db.define(
       type: DataTypes.STRING
     },
     stock: {
-      type: DataTypes.STRING
+      type: DataTypes.INTEGER
     },
     deskripsi: {
       type: DataTypes.STRING

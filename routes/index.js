@@ -6,9 +6,10 @@ import {
   getUserById,
   getUsers,
   logout,
-  register
+  register,
+  searchUserByName
 } from '../controller/user.js';
-import { authenticateToken, getToken, refresh } from '../middleware/refresh.js';
+import { getToken, refresh } from '../middleware/refresh.js';
 import {
   addProduct,
   deleteProductById,
@@ -16,6 +17,7 @@ import {
   getProductByIdUser,
   getProductByid,
   getProducts,
+  searchProductByName,
   upload
 } from '../controller/product.js';
 import {
@@ -45,7 +47,8 @@ router.post('/api/v1/user/register', register);
 router.post('/api/v1/login', Login);
 router.post('/api/v1/logout', logout);
 router.delete('/api/v1/deleteUser/:userId', deleteUser);
-router.put('/api/v1/editUser/:userId', authenticateToken, editUser);
+router.put('/api/v1/editUser/:userId', editUser);
+router.get('/api/v1/searchUser', searchUserByName);
 
 // product
 router.get('/api/v1/products', getProducts);
@@ -54,6 +57,7 @@ router.get('/api/v1/user/:pelapakId', getProductByIdUser);
 router.post('/api/v1/addProduct', upload.array('image'), addProduct);
 router.delete('/api/v1/product/:productId', deleteProductById);
 router.patch('/api/v1/editProduct/:productId', upload.array('image'), editProductById);
+router.get('/api/v1/searchProduct', searchProductByName);
 
 // order
 router.get('/api/v1/orders', getOrders);

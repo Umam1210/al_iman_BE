@@ -22,6 +22,10 @@ export const Voucher = db.define(
     isUsed: {
       type: DataTypes.BOOLEAN,
       defaultValue: false
+    },
+    usedAt: {
+      type: DataTypes.DATE,
+      allowNull: true
     }
   },
   {

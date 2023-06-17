@@ -1,16 +1,33 @@
 import bcrypt from 'bcrypt';
 import { User } from '../models/userModels.js';
 import jwt from 'jsonwebtoken';
+import { Op } from 'sequelize';
 
 // mengambil semua data users
 export const getUsers = async (req, res) => {
   try {
     const users = await User.findAll({
-      attributes: ['id', 'name', 'email']
+      attributes: ['id', 'name', 'email', 'role']
     });
     res.json(users);
   } catch (error) {
     console.log(error);
+  }
+};
+
+// mencari user berdasarkan nama
+export const searchUserByName = async (req, res) => {
+  try {
+    const { userName } = req.query;
+    // Mencari produk berdasarkan nama produk
+    const products = await User.findAll({
+      where: { name: { [Op.like]: `%${userName}%` } }
+    });
+
+    res.json(products);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ errorMessage: 'Terjadi kesalahan pada server' });
   }
 };
 
@@ -74,14 +91,11 @@ export const Login = async (req, res) => {
 
     const date = new Date();
     const userId = user.id;
-    const name = user.name;
+    const userName = user.name;
     // const email = user.email;
     const userRole = user.role; // Mengambil nilai userRole dari data pengguna yang masuk
-    const accessToken = jwt.sign({ userId, name }, process.env.ACCESS_TOKEN_SECRET, {
-      expiresIn: '20s'
-    });
     const refreshToken = jwt.sign(
-      { userId, name, date, userRole },
+      { userId, userName, date, userRole },
       process.env.ACCESS_TOKEN_SECRET,
       {
         expiresIn: '1d'
@@ -112,7 +126,7 @@ export const Login = async (req, res) => {
     });
 
     console.log('Cookies:', req.cookies);
-    res.json({ accessToken, userRole });
+    res.json([{ userRole, userId, userName }]);
   } catch (error) {
     res.status(500).json({ msg: 'Terjadi kesalahan server', error: error.message });
   }
@@ -124,6 +138,8 @@ export const logout = async (req, res) => {
     // Menghapus semua cookie pada sisi klien
     res.clearCookie('refreshToken');
     res.clearCookie('userRole');
+    res.clearCookie('userId');
+    res.clearCookie('Role');
     res.status(200).json({ msg: 'Logout berhasil' });
   } catch (error) {
     console.log(error);
