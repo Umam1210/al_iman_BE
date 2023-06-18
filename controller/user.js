@@ -154,7 +154,7 @@ export const getUserById = async (req, res) => {
 
     // Mencari pengguna berdasarkan ID
     const user = await User.findByPk(userId, {
-      attributes: ['id', 'name', 'email', 'role', 'kontak', 'alamat']
+      attributes: ['id', 'name', 'email', 'role', 'kontak', 'alamat', 'no_kk']
     });
 
     if (!user) {

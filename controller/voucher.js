@@ -1,3 +1,4 @@
+import { Op } from 'sequelize';
 import { User } from '../models/userModels.js';
 import { Voucher } from '../models/voucherModel.js';
 
@@ -129,5 +130,22 @@ export const getVoucherByUserId = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ errorMessage: error.message });
+  }
+};
+
+export const searchVoucher = async (req, res) => {
+  try {
+    const { voucherName } = req.query;
+    const vouchers = await Voucher.findAll({
+      where: {
+        name: {
+          [Op.like]: `%${voucherName}%`
+        }
+      }
+    });
+    res.json(vouchers);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ errorMessage: 'Terjadi kesalahan pada server' });
   }
 };

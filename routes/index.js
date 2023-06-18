@@ -33,7 +33,8 @@ import {
   editVoucherById,
   getVoucherById,
   getVoucherByUserId,
-  getVouchers
+  getVouchers,
+  searchVoucher
 } from '../controller/voucher.js';
 
 const router = express.Router();
@@ -73,5 +74,6 @@ router.get('/api/v1/userVoucher/:userId', getVoucherByUserId);
 router.post('/api/v1/createVoucher', createVoucher);
 router.put('/api/v1/editVoucher/:voucherId', editVoucherById);
 router.delete('/api/v1/deleteVoucher/:voucherId', deleteVoucherById);
+router.get('/api/v1/searchVoucher', searchVoucher);
 
 export default router;
