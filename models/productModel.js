@@ -23,6 +23,10 @@ export const Product = db.define(
     },
     pelapakId: {
       type: DataTypes.UUID
+    },
+    visibility: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true
     }
   },
   {
@@ -58,3 +62,4 @@ export const Image = db.define(
 );
 
 Product.hasMany(Image, { foreignKey: 'productId' });
+Image.belongsTo(Product, { foreignKey: 'productId' });

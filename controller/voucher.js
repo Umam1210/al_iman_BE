@@ -1,6 +1,6 @@
 import { Op } from 'sequelize';
 import { User } from '../models/userModels.js';
-import { Voucher } from '../models/voucherModel.js';
+import { Voucher, VoucherUsage } from '../models/voucherModel.js';
 
 export const getVouchers = async (req, res) => {
   try {
@@ -40,9 +40,18 @@ export const createVoucher = async (req, res) => {
 
     const voucher = await Voucher.create({
       jumlah,
-      name,
-      userId: user ? user.id : null
+      name
     });
+
+    // Jika terdapat user yang terkait, buat juga entitas VoucherUsage
+    if (user) {
+      await VoucherUsage.create({
+        voucherId: voucher.id,
+        userId: user.id,
+        isUsed: false,
+        usedAt: null
+      });
+    }
 
     res.status(201).json({ message: 'Voucher berhasil dibuat', voucher });
   } catch (error) {
@@ -55,29 +64,55 @@ export const editVoucherById = async (req, res) => {
   try {
     const { voucherId } = req.params;
     const { jumlah, name, userId } = req.body;
-
-    // Mencari voucher berdasarkan ID
     const voucher = await Voucher.findByPk(voucherId);
 
     if (!voucher) {
       return res.status(404).json({ errorMessage: 'Voucher tidak ditemukan' });
     }
-
-    // Mengedit atribut-atribut voucher
     voucher.jumlah = jumlah;
     voucher.name = name;
+    let user = null;
+    let voucherUsage = null;
 
     if (userId) {
-      const user = await User.findByPk(userId);
+      user = await User.findByPk(userId);
       if (!user) {
         return res.status(404).json({ errorMessage: 'User tidak ditemukan' });
       }
-      voucher.userId = user.id;
+      voucherUsage = await VoucherUsage.findOne({
+        where: {
+          voucherId,
+          userId: user.id
+        }
+      });
+
+      if (voucherUsage) {
+        voucherUsage.isUsed = false;
+        voucherUsage.usedAt = null;
+        await voucherUsage.save();
+      } else {
+        voucherUsage = await VoucherUsage.create({
+          voucherId,
+          userId: user.id,
+          isUsed: false,
+          usedAt: null
+        });
+      }
     } else {
-      voucher.userId = null;
+      // Jika userId tidak ada, periksa apakah terdapat entitas VoucherUsage yang terkait dan hapus jika ada
+      voucherUsage = await VoucherUsage.findOne({
+        where: {
+          voucherId,
+          userId: null
+        }
+      });
+
+      if (voucherUsage) {
+        await voucherUsage.destroy();
+      }
     }
 
-    // Menyimpan perubahan ke database
+    // Menyimpan perubahan pada voucher ke database
     await voucher.save();
 
     res.json({ message: 'Voucher berhasil diubah', voucher });
@@ -111,20 +146,20 @@ export const deleteVoucherById = async (req, res) => {
 export const getVoucherByUserId = async (req, res) => {
   try {
     const { userId } = req.params;
-
-    // Mencari pengguna berdasarkan ID
     const user = await User.findByPk(userId);
 
     if (!user) {
       return res.status(404).json({ errorMessage: 'Pengguna tidak ditemukan' });
     }
 
-    // Mengambil voucher yang dimiliki oleh pengguna
-    const vouchers = await Voucher.findAll({ where: { userId } });
+    const voucherUsages = await VoucherUsage.findAll({ where: { userId } });
 
-    if (vouchers.length === 0) {
+    if (voucherUsages.length === 0) {
       return res.status(200).json({ message: 'Pengguna tidak memiliki voucher' });
     }
+
+    const voucherIds = voucherUsages.map((voucherUsage) => voucherUsage.voucherId);
+    const vouchers = await Voucher.findAll({ where: { id: voucherIds } });
 
     res.json(vouchers);
   } catch (error) {

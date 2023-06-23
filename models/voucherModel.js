@@ -18,14 +18,6 @@ export const Voucher = db.define(
     name: {
       type: DataTypes.STRING,
       allowNull: false
-    },
-    isUsed: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false
-    },
-    usedAt: {
-      type: DataTypes.DATE,
-      allowNull: true
     }
   },
   {
@@ -33,7 +25,41 @@ export const Voucher = db.define(
   }
 );
 
-User.hasMany(Voucher, { foreignKey: 'userId' });
-Voucher.belongsTo(User, { foreignKey: 'userId' });
+export const VoucherUsage = db.define(
+  'voucher_usages',
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: Sequelize.UUIDV4,
+      primaryKey: true
+    },
+    voucherId: {
+      type: DataTypes.UUID,
+      allowNull: false
+    },
+    userId: {
+      type: DataTypes.UUID,
+      allowNull: false
+    },
+    isUsed: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
+    usedAt: {
+      type: DataTypes.DATE
+    }
+  },
+  {
+    freezeTableName: true
+  }
+);
+
+Voucher.hasMany(VoucherUsage, { foreignKey: 'voucherId' });
+VoucherUsage.belongsTo(Voucher, { foreignKey: 'voucherId' });
+
+// Relasi antara User dan VoucherUsage
+User.hasMany(VoucherUsage, { foreignKey: 'userId' });
+VoucherUsage.belongsTo(User, { foreignKey: 'userId', targetKey: 'id' });
+
 Product.hasOne(Voucher, { foreignKey: 'productId' });
 Voucher.belongsTo(Product, { foreignKey: 'productId' });

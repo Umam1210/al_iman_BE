@@ -174,35 +174,106 @@ export const deleteProductById = async (req, res) => {
 };
 
 // Edit Product by Id
+// export const editProductById = async (req, res) => {
+//   try {
+//     const { productId } = req.params;
+//     const { name, harga, stock, deskripsi, pelapakId, status } = req.body;
+
+//     console.log('Request Body:', req.body); // Menampilkan nilai req.body
+//     console.log('Request params:', req.params); // Menampilkan nilai req.body
+
+//     // Mencari produk berdasarkan ID
+//     const product = await Product.findByPk(productId);
+
+//     if (!product) {
+//       return res.status(404).json({ errorMessage: 'Produk tidak ditemukan' });
+//     }
+//     // Mengedit atribut-atribut produk
+//     product.name = name;
+//     product.harga = harga;
+//     product.stock = stock;
+//     product.status = status;
+//     product.deskripsi = deskripsi;
+//     product.pelapakId = pelapakId;
+
+//     // Menyimpan perubahan ke database
+//     await product.save();
+
+//     // Mengupdate gambar produk jika ada perubahan
+//     const { files } = req;
+//     if (files && files.length > 0) {
+//       // Menghapus gambar-gambar produk yang ada sebelumnya
+//       await Image.destroy({ where: { productId } });
+
+//       const imageUrls = [];
+//       for (const file of files) {
+//         const ext = path.extname(file.originalname);
+//         const fileName = file.filename;
+//         const url = `${req.protocol}://${req.get('host')}/uploads/${fileName}`;
+//         const allowedTypes = ['.png', '.jpg', '.jpeg'];
+
+//         if (!allowedTypes.includes(ext.toLowerCase())) {
+//           return res.status(422).json({ errorMessage: 'Jenis file gambar tidak valid' });
+//         }
+
+//         if (file.size > 5000000) {
+//           return res.status(422).json({ errorMessage: 'Ukuran gambar harus kurang dari 5 MB' });
+//         }
+
+//         imageUrls.push(url);
+
+//         await Image.create({
+//           filename: fileName,
+//           data: file.buffer,
+//           productId: product.id,
+//           url: url
+//         });
+//       }
+
+//       res.json({
+//         message: 'Produk berhasil diubah',
+//         product: product.toJSON(),
+//         imageUrls
+//       });
+//     } else {
+//       res.json({
+//         message: 'Produk berhasil diubah',
+//         product: product.toJSON()
+//       });
+//     }
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ errorMessage: error.message });
+//   }
+// };
 export const editProductById = async (req, res) => {
   try {
     const { productId } = req.params;
-    const { name, harga, stock, deskripsi, pelapakId, status } = req.body;
+    const { name, harga, stock, deskripsi, pelapakId, visibility } = req.body;
 
-    console.log('Request Body:', req.body); // Menampilkan nilai req.body
-    console.log('Request params:', req.params); // Menampilkan nilai req.body
+    console.log('Request Body:', req.body);
+    console.log('Request params:', req.params);
 
-    // Mencari produk berdasarkan ID
     const product = await Product.findByPk(productId);
 
     if (!product) {
       return res.status(404).json({ errorMessage: 'Produk tidak ditemukan' });
     }
-    // Mengedit atribut-atribut produk
+
+    const existingImages = await product.getImages(); // Mengambil gambar-gambar terkait produk
+    const existingImageUrls = existingImages.map((image) => image.url); // Menyimpan URL gambar yang ada saat ini
+
     product.name = name;
     product.harga = harga;
     product.stock = stock;
-    product.status = status;
+    product.visibility = visibility;
     product.deskripsi = deskripsi;
     product.pelapakId = pelapakId;
 
-    // Menyimpan perubahan ke database
     await product.save();
 
-    // Mengupdate gambar produk jika ada perubahan
     const { files } = req;
     if (files && files.length > 0) {
-      // Menghapus gambar-gambar produk yang ada sebelumnya
       await Image.destroy({ where: { productId } });
 
       const imageUrls = [];
@@ -238,7 +309,8 @@ export const editProductById = async (req, res) => {
     } else {
       res.json({
         message: 'Produk berhasil diubah',
-        product: product.toJSON()
+        product: product.toJSON(),
+        imageUrls: existingImageUrls // Menggunakan URL gambar yang ada saat ini
       });
     }
   } catch (error) {
