@@ -30,10 +30,12 @@ import {
 import {
   createVoucher,
   deleteVoucherById,
+  deleteVoucherUsageByID,
   editVoucherById,
   getVoucherById,
   getVoucherByUserId,
   getVouchers,
+  giveVoucher,
   searchVoucher
 } from '../controller/voucher.js';
 
@@ -74,6 +76,8 @@ router.get('/api/v1/userVoucher/:userId', getVoucherByUserId);
 router.post('/api/v1/createVoucher', createVoucher);
 router.put('/api/v1/editVoucher/:voucherId', editVoucherById);
 router.delete('/api/v1/deleteVoucher/:voucherId', deleteVoucherById);
+router.delete('/api/v1/deleteVoucherUsage/:voucherId', deleteVoucherUsageByID);
 router.get('/api/v1/searchVoucher', searchVoucher);
+router.post('/api/v1/giveVoucher', giveVoucher);
 
 export default router;

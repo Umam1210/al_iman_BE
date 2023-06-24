@@ -142,6 +142,48 @@ export const deleteVoucherById = async (req, res) => {
     res.status(500).json({ errorMessage: error.message });
   }
 };
+export const deleteVoucherUsageByID = async (req, res) => {
+  try {
+    const { voucherId } = req.params;
+    const voucherUsage = await VoucherUsage.findByPk(voucherId);
+
+    if (!voucherUsage) {
+      return res.status(404).json({ errorMessage: 'Voucher usage tidak ditemukan' });
+    }
+
+    await voucherUsage.destroy();
+
+    res.json({ message: 'Voucher usage berhasil dihapus' });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ errorMessage: error.message });
+  }
+};
+
+// export const getVoucherByUserId = async (req, res) => {
+//   try {
+//     const { userId } = req.params;
+//     const user = await User.findByPk(userId);
+
+//     if (!user) {
+//       return res.status(404).json({ errorMessage: 'Pengguna tidak ditemukan' });
+//     }
+
+//     const voucherUsages = await VoucherUsage.findAll({ where: { userId } });
+
+//     if (voucherUsages.length === 0) {
+//       return res.status(200).json({ message: 'Pengguna tidak memiliki voucher' });
+//     }
+
+//     const voucherIds = voucherUsages.map((voucherUsage) => voucherUsage.voucherId);
+//     const vouchers = await Voucher.findAll({ where: { id: voucherIds } });
+
+//     res.json(vouchers);
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ errorMessage: error.message });
+//   }
+// };
 
 export const getVoucherByUserId = async (req, res) => {
   try {
@@ -152,14 +194,12 @@ export const getVoucherByUserId = async (req, res) => {
       return res.status(404).json({ errorMessage: 'Pengguna tidak ditemukan' });
     }
 
-    const voucherUsages = await VoucherUsage.findAll({ where: { userId } });
-
-    if (voucherUsages.length === 0) {
-      return res.status(200).json({ message: 'Pengguna tidak memiliki voucher' });
-    }
-
-    const voucherIds = voucherUsages.map((voucherUsage) => voucherUsage.voucherId);
-    const vouchers = await Voucher.findAll({ where: { id: voucherIds } });
+    const vouchers = await Voucher.findAll({
+      include: {
+        model: VoucherUsage,
+        where: { userId }
+      }
+    });
 
     res.json(vouchers);
   } catch (error) {
@@ -182,5 +222,39 @@ export const searchVoucher = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ errorMessage: 'Terjadi kesalahan pada server' });
+  }
+};
+
+export const giveVoucher = async (req, res) => {
+  try {
+    const { idVoucher, idUser } = req.body;
+
+    // Periksa apakah voucher dengan idVoucher tersedia
+    const voucher = await Voucher.findByPk(idVoucher);
+    if (!voucher) {
+      return res.status(404).json({ errorMessage: 'Voucher tidak ditemukan' });
+    }
+
+    // Periksa apakah user dengan idUser tersedia
+    const user = await User.findByPk(idUser);
+    if (!user) {
+      return res.status(404).json({ errorMessage: 'User tidak ditemukan' });
+    }
+
+    // Perbarui voucherId pada tabel User untuk memberikan voucher kepada user
+    await User.update({ voucherId: idVoucher }, { where: { id: idUser } });
+
+    // Buat entri baru pada tabel VoucherUsage
+    await VoucherUsage.create({
+      voucherId: idVoucher,
+      userId: idUser,
+      isUsed: false,
+      usedAt: null
+    });
+
+    res.status(200).json({ message: 'Voucher berhasil diberikan kepada pengguna' });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ errorMessage: error.message });
   }
 };
