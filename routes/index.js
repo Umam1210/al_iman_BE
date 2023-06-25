@@ -4,9 +4,11 @@ import {
   deleteUser,
   editUser,
   getUserById,
+  getUserPelapak,
   getUsers,
   logout,
   register,
+  searchPelapak,
   searchUserByName
 } from '../controller/user.js';
 import { getToken, refresh } from '../middleware/refresh.js';
@@ -25,7 +27,8 @@ import {
   getOrderById,
   createOrder,
   deleteOrderById,
-  editOrderById
+  editOrderById,
+  getOrdersByUserId
 } from '../controller/order.js';
 import {
   createVoucher,
@@ -52,6 +55,8 @@ router.post('/api/v1/logout', logout);
 router.delete('/api/v1/deleteUser/:userId', deleteUser);
 router.put('/api/v1/editUser/:userId', editUser);
 router.get('/api/v1/searchUser', searchUserByName);
+router.get('/api/v1/pelapak', getUserPelapak);
+router.get('/api/v1/pelapak/search', searchPelapak);
 
 // product
 router.get('/api/v1/products', getProducts);
@@ -65,6 +70,7 @@ router.get('/api/v1/searchProduct', searchProductByName);
 // order
 router.get('/api/v1/orders', getOrders);
 router.get('/api/v1/order/:orderId', getOrderById);
+router.get('/api/v1/orderUser/:userId', getOrdersByUserId);
 router.post('/api/v1/orders', createOrder);
 router.delete('/api/v1/deleteOrder/:orderId', deleteOrderById);
 router.put('/api/v1/editOrder/:orderId', editOrderById);

@@ -15,6 +15,41 @@ export const getUsers = async (req, res) => {
   }
 };
 
+export const getUserPelapak = async (req, res) => {
+  try {
+    const users = await User.findAll({
+      where: {
+        role: 'pelapak'
+      },
+      attributes: ['id', 'name', 'email', 'role']
+    });
+    res.json(users);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const searchPelapak = async (req, res) => {
+  try {
+    const { name } = req.query;
+
+    const users = await User.findAll({
+      where: {
+        role: 'pelapak',
+        name: {
+          [Op.like]: `%${name}%`
+        }
+      },
+      attributes: ['id', 'name', 'email', 'role']
+    });
+
+    res.json(users);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ errorMessage: error.message });
+  }
+};
+
 // mencari user berdasarkan nama
 export const searchUserByName = async (req, res) => {
   try {

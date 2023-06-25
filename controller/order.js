@@ -39,6 +39,31 @@ export const getOrderById = async (req, res) => {
   }
 };
 
+export const getOrdersByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const orders = await Order.findAll({
+      where: {
+        userId: userId
+      },
+      include: [
+        { model: User, attributes: ['name', 'email'] },
+        { model: Product, as: 'product', attributes: ['name', 'harga'] },
+        { model: Voucher, as: 'voucher', attributes: ['jumlah', 'name'] }
+      ]
+    });
+
+    if (!orders || orders.length === 0) {
+      return res.status(404).json({ error: 'Data tidak ditemukan' });
+    }
+
+    res.json(orders);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ errorMessage: error.message });
+  }
+};
+
 // export const createOrder = async (req, res) => {
 //   try {
 //     const { userId, productId, banyak, status, tanggal_ambil, jam_ambil, voucherId, catatan } =
