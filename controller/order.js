@@ -155,7 +155,7 @@ export const createOrder = async (req, res) => {
     await product.save();
 
     let total_harga = product.harga * banyak;
-    let total_bayar = total_harga; // Menggunakan total harga sebagai total bayar awal
+    let total_bayar = total_harga;
 
     let voucher = null;
     if (voucherId) {
@@ -165,7 +165,13 @@ export const createOrder = async (req, res) => {
         return res.status(404).json({ errorMessage: 'Voucher tidak ditemukan' });
       }
 
-      if (voucher.isUsed) {
+      const voucherUsage = await VoucherUsage.findOne({ where: { voucherId, userId } });
+
+      if (!voucherUsage) {
+        return res.status(400).json({ errorMessage: 'Voucher tidak digunakan oleh pengguna ini' });
+      }
+
+      if (voucherUsage.isUsed) {
         return res.status(400).json({ errorMessage: 'Voucher Sudah Digunakan' });
       }
 
@@ -177,17 +183,9 @@ export const createOrder = async (req, res) => {
         total_bayar = 0;
       }
 
-      voucher.isUsed = true;
-      voucher.usedAt = new Date();
-      await voucher.save();
-
-      // Menyimpan informasi penggunaan voucher pada tabel VoucherUsage
-      const voucherUsage = await VoucherUsage.create({
-        voucherId: voucher.id,
-        userId,
-        isUsed: true,
-        usedAt: new Date()
-      });
+      voucherUsage.isUsed = true;
+      voucherUsage.usedAt = new Date();
+      await voucherUsage.save();
     }
 
     const orderCount = await Order.count(); // Menghitung jumlah order yang sudah ada
