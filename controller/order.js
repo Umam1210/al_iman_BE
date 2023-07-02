@@ -1,5 +1,5 @@
 import { Order } from '../models/orderModel.js';
-import { Product } from '../models/productModel.js';
+import { Image, Product } from '../models/productModel.js';
 import { User } from '../models/userModels.js';
 import { Voucher, VoucherUsage } from '../models/voucherModel.js';
 
@@ -24,9 +24,15 @@ export const getOrderById = async (req, res) => {
     const { orderId } = req.params;
     const order = await Order.findByPk(orderId, {
       include: [
-        { model: User, attributes: ['name', 'email'] },
-        { model: Product, as: 'product', attributes: ['name', 'harga'] },
-        { model: Voucher, as: 'voucher', attributes: ['jumlah', 'name'] }
+        { model: User, as: 'user', attributes: ['name', 'alamat', 'kontak'] },
+        {
+          model: Product,
+          as: 'product',
+          include: [
+            { model: Image, as: 'images' },
+            { model: Voucher, as: 'voucher', attributes: ['jumlah', 'name'] }
+          ]
+        }
       ]
     });
     if (!order) {
@@ -235,15 +241,15 @@ export const deleteOrderById = async (req, res) => {
 export const editOrderById = async (req, res) => {
   try {
     const {
-      orderId,
-      userId,
+      // orderId,
+      // userId,
       productId,
-      banyak,
-      status,
-      tanggal_ambil,
-      jam_ambil,
-      voucherId,
-      catatan
+      // banyak,
+      status
+      // tanggal_ambil,
+      // jam_ambil,
+      // voucherId,
+      // catatan
     } = req.body;
     const { orderId: orderToUpdateId } = req.params;
     const order = await Order.findOne({ where: { orderId: orderToUpdateId } });
@@ -256,23 +262,23 @@ export const editOrderById = async (req, res) => {
     if (!product) {
       return res.status(404).json({ errorMessage: 'Produk tidak ditemukan' });
     }
-    const total_harga = product.harga * banyak;
-    const voucher = await Voucher.findByPk(voucherId);
-    let harga_setelah_diskon = total_harga - (voucher ? voucher.jumlah : 0);
-    if (harga_setelah_diskon < 0) {
-      harga_setelah_diskon = 0;
-    }
+    // const total_harga = product.harga * banyak;
+    // const voucher = await Voucher.findByPk(voucherId);
+    // let harga_setelah_diskon = total_harga - (voucher ? voucher.jumlah : 0);
+    // if (harga_setelah_diskon < 0) {
+    //   harga_setelah_diskon = 0;
+    // }
     await order.update({
-      orderId,
-      userId,
+      // orderId,
+      // userId,
       productId,
-      banyak,
-      total_harga: harga_setelah_diskon,
-      status,
-      tanggal_ambil,
-      jam_ambil,
-      catatan,
-      voucherId: voucher ? voucher.id : null
+      // banyak,
+      // total_harga: harga_setelah_diskon,
+      status
+      // tanggal_ambil,
+      // jam_ambil,
+      // catatan,
+      // voucherId: voucher ? voucher.id : null
     });
 
     res.json({ message: 'Order berhasil diubah', order });
@@ -284,25 +290,83 @@ export const editOrderById = async (req, res) => {
 
 export const getMonthlySales = async (req, res) => {
   try {
-    // Mengambil bulan dan tahun saat ini
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth() + 1;
-
-    // Menghitung nilai penjualan per bulan
+    // Menghitung jumlah pesanan yang selesai per bulan
     const orders = await Order.findAll({
       where: {
-        status: 'completed',
-        tanggal_ambil: {
-          $gte: new Date(currentYear, currentMonth - 1, 1),
-          $lt: new Date(currentYear, currentMonth, 1)
-        }
+        status: 'selesai'
       }
     });
 
-    const totalSales = orders.reduce((acc, order) => acc + order.total_harga, 0);
+    // Array dengan nama bulan dalam bahasa Indonesia
+    const namaBulan = [
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember'
+    ];
 
-    res.json({ year: currentYear, month: currentMonth, totalSales });
+    // Inisialisasi objek untuk menyimpan data penjualan per bulan
+    const monthlySales = {};
+
+    // Mengisi data pesanan yang selesai per bulan
+    orders.forEach((order) => {
+      const orderYear = order.tanggal_pesan.getFullYear();
+      const orderMonth = order.tanggal_pesan.getMonth();
+      const monthYearString = `${namaBulan[orderMonth]} ${orderYear}`;
+
+      if (!monthlySales[monthYearString]) {
+        monthlySales[monthYearString] = {
+          bulan: monthYearString,
+          jumlahPesanan: 0,
+          penghasilan: 0
+        };
+      }
+
+      monthlySales[monthYearString].jumlahPesanan++;
+      monthlySales[monthYearString].penghasilan += order.total_harga;
+    });
+
+    // Mengurutkan hasil penjualan per bulan
+    const sortedSales = Object.values(monthlySales).sort((a, b) => {
+      const aDate = new Date(a.bulan);
+      const bDate = new Date(b.bulan);
+      return aDate - bDate;
+    });
+
+    res.json({ sales: sortedSales });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ errorMessage: error.message });
+  }
+};
+
+export const getOrderByPelapakId = async (req, res) => {
+  try {
+    const { pelapakId } = req.params;
+    const orders = await Order.findAll({
+      include: [
+        {
+          model: Product,
+          as: 'product',
+          where: { pelapakId },
+          include: [
+            { model: Image, as: 'images' },
+            { model: Voucher, as: 'voucher', attributes: ['jumlah', 'name'] }
+          ]
+        },
+        { model: User, as: 'user', attributes: ['name', 'alamat', 'kontak'] }
+      ]
+    });
+
+    res.json(orders);
   } catch (error) {
     console.log(error);
     res.status(500).json({ errorMessage: error.message });

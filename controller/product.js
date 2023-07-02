@@ -319,6 +319,86 @@ export const editProductById = async (req, res) => {
   }
 };
 
+// export const editProductById = async (req, res) => {
+//   try {
+//     const { productId } = req.params;
+//     const { name, harga, stock, deskripsi, pelapakId, visibility } = req.body;
+
+//     console.log('Request Body:', req.body);
+//     console.log('Request params:', req.params);
+
+//     const product = await Product.findByPk(productId, { include: Image });
+
+//     if (!product) {
+//       return res.status(404).json({ errorMessage: 'Produk tidak ditemukan' });
+//     }
+
+//     product.name = name;
+//     product.harga = harga;
+//     product.stock = stock;
+//     product.visibility = visibility;
+//     product.deskripsi = deskripsi;
+//     product.pelapakId = pelapakId;
+
+//     await product.save();
+
+//     const { files } = req;
+
+//     if (files && files.length > 0) {
+//       const existingImages = product.images; // Mengambil gambar-gambar terkait produk
+//       const existingImageUrls = existingImages.map((image) => image.url); // Menyimpan URL gambar yang ada saat ini
+
+//       // Menghapus gambar-gambar yang sudah ada yang ingin diubah atau dihapus
+//       const deletedImageIds = req.body.deletedImageIds || [];
+//       for (const deletedImageId of deletedImageIds) {
+//         await Image.destroy({ where: { id: deletedImageId, productId } });
+//       }
+
+//       const imageUrls = [];
+
+//       // Mengolah gambar-gambar baru
+//       for (const file of files) {
+//         const ext = path.extname(file.originalname);
+//         const fileName = file.filename;
+//         const url = `${req.protocol}://${req.get('host')}/uploads/${fileName}`;
+//         const allowedTypes = ['.png', '.jpg', '.jpeg'];
+
+//         if (!allowedTypes.includes(ext.toLowerCase())) {
+//           return res.status(422).json({ errorMessage: 'Jenis file gambar tidak valid' });
+//         }
+
+//         if (file.size > 5000000) {
+//           return res.status(422).json({ errorMessage: 'Ukuran gambar harus kurang dari 5 MB' });
+//         }
+
+//         imageUrls.push(url);
+
+//         await Image.create({
+//           filename: fileName,
+//           data: file.buffer,
+//           productId: product.id,
+//           url: url
+//         });
+//       }
+
+//       res.json({
+//         message: 'Produk berhasil diubah',
+//         product: product.toJSON(),
+//         imageUrls,
+//         existingImageUrls
+//       });
+//     } else {
+//       res.json({
+//         message: 'Produk berhasil diubah',
+//         product: product.toJSON()
+//       });
+//     }
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ errorMessage: error.message });
+//   }
+// };
+
 export const searchProductByName = async (req, res) => {
   try {
     const { productName } = req.query;
@@ -326,6 +406,28 @@ export const searchProductByName = async (req, res) => {
     // Mencari produk berdasarkan nama produk
     const products = await Product.findAll({
       where: { name: { [Op.like]: `%${productName}%` } },
+      include: [{ model: Image, attributes: ['filename', 'url'] }]
+    });
+
+    res.json(products);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ errorMessage: 'Terjadi kesalahan pada server' });
+  }
+};
+
+export const searchProductByPelapak = async (req, res) => {
+  try {
+    const { productName } = req.query;
+    const { pelapakId } = req.params;
+    // Ambil ID pelapak dari parameter permintaan
+    console.log('ID Pelapak:', pelapakId);
+    // Mencari produk berdasarkan nama produk dan ID pelapak
+    const products = await Product.findAll({
+      where: {
+        name: { [Op.like]: `%${productName}%` },
+        pelapakId // Hanya produk dengan ID pelapak yang sesuai
+      },
       include: [{ model: Image, attributes: ['filename', 'url'] }]
     });
 

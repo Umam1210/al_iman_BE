@@ -20,6 +20,7 @@ import {
   getProductByid,
   getProducts,
   searchProductByName,
+  searchProductByPelapak,
   upload
 } from '../controller/product.js';
 import {
@@ -28,7 +29,9 @@ import {
   createOrder,
   deleteOrderById,
   editOrderById,
-  getOrdersByUserId
+  getOrdersByUserId,
+  getMonthlySales,
+  getOrderByPelapakId
 } from '../controller/order.js';
 import {
   createVoucher,
@@ -41,6 +44,7 @@ import {
   giveVoucher,
   searchVoucher
 } from '../controller/voucher.js';
+import { checkToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -66,6 +70,7 @@ router.post('/api/v1/addProduct', upload.array('image'), addProduct);
 router.delete('/api/v1/product/:productId', deleteProductById);
 router.patch('/api/v1/editProduct/:productId', upload.array('image'), editProductById);
 router.get('/api/v1/searchProduct', searchProductByName);
+router.get('/api/v1/searchProductPelapak/:pelapakId', searchProductByPelapak);
 
 // order
 router.get('/api/v1/orders', getOrders);
@@ -74,9 +79,11 @@ router.get('/api/v1/orderUser/:userId', getOrdersByUserId);
 router.post('/api/v1/orders', createOrder);
 router.delete('/api/v1/deleteOrder/:orderId', deleteOrderById);
 router.put('/api/v1/editOrder/:orderId', editOrderById);
+router.get('/api/v1/getMountly', getMonthlySales);
+router.get('/api/v1/orderPelapak/:pelapakId', getOrderByPelapakId);
 
 // voucher
-router.get('/api/v1/vouchers', getVouchers);
+router.get('/api/v1/vouchers', checkToken, getVouchers);
 router.get('/api/v1/voucher/:voucherId', getVoucherById);
 router.get('/api/v1/userVoucher/:userId', getVoucherByUserId);
 router.post('/api/v1/createVoucher', createVoucher);

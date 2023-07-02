@@ -26,7 +26,7 @@ export const Product = db.define(
     },
     visibility: {
       type: DataTypes.BOOLEAN,
-      defaultValue: true
+      defaultValue: false
     }
   },
   {

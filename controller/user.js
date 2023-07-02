@@ -42,7 +42,6 @@ export const searchPelapak = async (req, res) => {
       },
       attributes: ['id', 'name', 'email', 'role']
     });
-
     res.json(users);
   } catch (error) {
     console.log(error);
@@ -58,7 +57,6 @@ export const searchUserByName = async (req, res) => {
     const products = await User.findAll({
       where: { name: { [Op.like]: `%${userName}%` } }
     });
-
     res.json(products);
   } catch (error) {
     console.error(error);
@@ -107,6 +105,66 @@ export const register = async (req, res) => {
 };
 
 // login
+// export const Login = async (req, res) => {
+//   try {
+//     const user = await User.findOne({
+//       where: {
+//         email: req.body.email
+//       }
+//     });
+
+//     if (!user) {
+//       return res.status(404).json({ msg: 'Email tidak ditemukan' });
+//     }
+
+//     const match = await bcrypt.compare(req.body.password, user.password);
+//     if (!match) {
+//       return res.status(400).json({ msg: 'Password salah' });
+//     }
+
+//     const date = new Date();
+//     const userId = user.id;
+//     const userName = user.name;
+//     // const email = user.email;
+//     const userRole = user.role; // Mengambil nilai userRole dari data pengguna yang masuk
+//     const refreshToken = jwt.sign(
+//       { userId, userName, date, userRole },
+//       process.env.ACCESS_TOKEN_SECRET,
+//       {
+//         expiresIn: '1d'
+//       }
+//     );
+//     await User.update(
+//       { refreshToken: refreshToken },
+//       {
+//         where: {
+//           id: userId
+//         }
+//       }
+//     );
+//     res.cookie('refreshToken', refreshToken, {
+//       httpOnly: false,
+//       maxAge: 24 * 60 * 60 * 1000,
+//       secure: false
+//     });
+//     res.cookie('Role', userRole, {
+//       httpOnly: false,
+//       maxAge: 24 * 60 * 60 * 1000,
+//       secure: false
+//     });
+//     res.cookie('userId', userId, {
+//       httpOnly: false,
+//       maxAge: 24 * 60 * 60 * 1000,
+//       secure: false
+//     });
+
+//     console.log('Cookies:', req.cookies);
+//     res.json([{ userRole, userId, userName }]);
+//   } catch (error) {
+//     res.status(500).json({ msg: 'Terjadi kesalahan server', error: error.message });
+//   }
+// };
+
 export const Login = async (req, res) => {
   try {
     const user = await User.findOne({
@@ -127,8 +185,7 @@ export const Login = async (req, res) => {
     const date = new Date();
     const userId = user.id;
     const userName = user.name;
-    // const email = user.email;
-    const userRole = user.role; // Mengambil nilai userRole dari data pengguna yang masuk
+    const userRole = user.role;
     const refreshToken = jwt.sign(
       { userId, userName, date, userRole },
       process.env.ACCESS_TOKEN_SECRET,
@@ -136,6 +193,7 @@ export const Login = async (req, res) => {
         expiresIn: '1d'
       }
     );
+
     await User.update(
       { refreshToken: refreshToken },
       {
@@ -144,6 +202,7 @@ export const Login = async (req, res) => {
         }
       }
     );
+
     res.cookie('refreshToken', refreshToken, {
       httpOnly: false,
       maxAge: 24 * 60 * 60 * 1000,
@@ -161,7 +220,7 @@ export const Login = async (req, res) => {
     });
 
     console.log('Cookies:', req.cookies);
-    res.json([{ userRole, userId, userName }]);
+    res.json([{ user: { userRole, userId, userName }, token: refreshToken }]);
   } catch (error) {
     res.status(500).json({ msg: 'Terjadi kesalahan server', error: error.message });
   }
