@@ -63,3 +63,6 @@ VoucherUsage.belongsTo(User, { foreignKey: 'userId', targetKey: 'id' });
 
 Product.hasOne(Voucher, { foreignKey: 'productId' });
 Voucher.belongsTo(Product, { foreignKey: 'productId' });
+
+// Voucher.hasOne(VoucherUsage, { foreignKey: 'voucherId', as: 'voucherUsage' });
+// VoucherUsage.belongsTo(Voucher, { foreignKey: 'voucherId', as: 'voucher' });

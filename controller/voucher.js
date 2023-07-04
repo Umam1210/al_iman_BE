@@ -258,3 +258,18 @@ export const giveVoucher = async (req, res) => {
     res.status(500).json({ errorMessage: error.message });
   }
 };
+
+export const getAllVoucherUsages = async (req, res) => {
+  try {
+    const voucherUsages = await VoucherUsage.findAll({
+      include: {
+        model: Voucher,
+        attributes: ['jumlah', 'name']
+      }
+    });
+    res.json(voucherUsages);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Terjadi kesalahan saat mengambil data voucher_usages' });
+  }
+};
