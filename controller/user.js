@@ -332,3 +332,26 @@ export const refreshToken = async (req, res) => {
     res.status(500).json({ msg: 'Terjadi kesalahan server', error: error.message });
   }
 };
+
+export const getPelapakByID = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findOne({
+      where: {
+        id,
+        role: 'pelapak'
+      },
+      attributes: ['id', 'name', 'email', 'role']
+    });
+
+    if (!user) {
+      return res.status(404).json({ errorMessage: 'Pelapak tidak ditemukan' });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ errorMessage: error.message });
+  }
+};

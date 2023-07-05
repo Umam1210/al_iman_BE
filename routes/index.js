@@ -3,6 +3,7 @@ import {
   Login,
   deleteUser,
   editUser,
+  getPelapakByID,
   getUserById,
   getUserPelapak,
   getUsers,
@@ -65,6 +66,7 @@ router.put('/api/v1/editUser/:userId', editUser);
 router.get('/api/v1/searchUser', searchUserByName);
 router.get('/api/v1/pelapak', getUserPelapak);
 router.get('/api/v1/pelapak/search', searchPelapak);
+router.get('/api/v1/getPelapakById/:id', getPelapakByID);
 
 // product
 router.get('/api/v1/products', getProducts);
