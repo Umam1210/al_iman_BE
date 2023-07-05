@@ -37,10 +37,12 @@ import {
   createVoucher,
   deleteVoucherById,
   deleteVoucherUsageByID,
+  deleteVoucherUsageById,
   editVoucherById,
   getAllVoucherUsages,
   getVoucherById,
   getVoucherByUserId,
+  getVoucherUsageByUserId,
   getVouchers,
   giveVoucher,
   searchVoucher
@@ -94,5 +96,7 @@ router.delete('/api/v1/deleteVoucherUsage/:voucherId', deleteVoucherUsageByID);
 router.get('/api/v1/searchVoucher', searchVoucher);
 router.post('/api/v1/giveVoucher', giveVoucher);
 router.get('/api/v1/getAllvoucherUsage', getAllVoucherUsages);
+router.delete('/api/v1/deleteVoucherUser/:id', deleteVoucherUsageById);
+router.get('/api/v1/voucherUsageUser/:userId', getVoucherUsageByUserId);
 
 export default router;

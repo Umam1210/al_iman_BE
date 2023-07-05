@@ -142,6 +142,7 @@ export const deleteVoucherById = async (req, res) => {
     res.status(500).json({ errorMessage: error.message });
   }
 };
+
 export const deleteVoucherUsageByID = async (req, res) => {
   try {
     const { voucherId } = req.params;
@@ -271,5 +272,61 @@ export const getAllVoucherUsages = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Terjadi kesalahan saat mengambil data voucher_usages' });
+  }
+};
+
+export const deleteVoucherUsageById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deletedVoucherUsage = await VoucherUsage.destroy({
+      where: { id }
+    });
+
+    if (deletedVoucherUsage) {
+      return res.status(200).json({
+        success: true,
+        message: 'Voucher usage deleted successfully.'
+      });
+    } else {
+      return res.status(404).json({
+        success: false,
+        message: 'Voucher usage not found.'
+      });
+    }
+  } catch (error) {
+    console.error('Error deleting voucher usage:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'An error occurred while deleting voucher usage.'
+    });
+  }
+};
+
+export const getVoucherUsageByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Mencari pengguna berdasarkan userId
+    const user = await User.findByPk(userId);
+
+    // Jika pengguna tidak ditemukan
+    if (!user) {
+      return res.status(404).json({ errorMessage: 'Pengguna tidak ditemukan' });
+    }
+
+    // Mengambil data voucher_usage berdasarkan userId
+    const voucherUsage = await VoucherUsage.findAll({
+      where: { userId },
+      include: {
+        model: Voucher
+      }
+    });
+
+    // Mengirim respons dengan data voucher_usage
+    res.json(voucherUsage);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ errorMessage: error.message });
   }
 };
