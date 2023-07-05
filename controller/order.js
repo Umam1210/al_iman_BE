@@ -390,10 +390,8 @@ export const getMonthlySales = async (req, res) => {
       'Desember'
     ];
 
-    // Inisialisasi objek untuk menyimpan data penjualan per bulan
     const monthlySales = {};
 
-    // Mengisi data pesanan yang selesai per bulan
     orders.forEach((order) => {
       const orderYear = order.tanggal_pesan.getFullYear();
       const orderMonth = order.tanggal_pesan.getMonth();
@@ -411,7 +409,6 @@ export const getMonthlySales = async (req, res) => {
       monthlySales[monthYearString].penghasilan += order.total_harga;
     });
 
-    // Mengurutkan hasil penjualan per bulan
     const sortedSales = Object.values(monthlySales).sort((a, b) => {
       const aDate = new Date(a.bulan);
       const bDate = new Date(b.bulan);

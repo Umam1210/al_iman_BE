@@ -330,3 +330,55 @@ export const getVoucherUsageByUserId = async (req, res) => {
     res.status(500).json({ errorMessage: error.message });
   }
 };
+
+export const countVoucherUsagePerMonth = async (req, res) => {
+  try {
+    const namaBulan = [
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember'
+    ];
+
+    const monthlyUsage = {};
+    const usages = await VoucherUsage.findAll({
+      where: {
+        isUsed: true
+      }
+    });
+
+    usages.forEach((usage) => {
+      const usageYear = usage.usedAt.getFullYear();
+      const usageMonth = usage.usedAt.getMonth();
+      const monthYearString = `${namaBulan[usageMonth]} ${usageYear}`;
+
+      if (!monthlyUsage[monthYearString]) {
+        monthlyUsage[monthYearString] = {
+          bulan: monthYearString,
+          jumlahDipakai: 0
+        };
+      }
+
+      monthlyUsage[monthYearString].jumlahDipakai++;
+    });
+
+    const sortedUsage = Object.values(monthlyUsage).sort((a, b) => {
+      const aDate = new Date(a.bulan);
+      const bDate = new Date(b.bulan);
+      return aDate - bDate;
+    });
+
+    res.json({ voucher: sortedUsage });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ errorMessage: 'Gagal menghitung voucher_usage per bulan' });
+  }
+};

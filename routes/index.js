@@ -34,6 +34,7 @@ import {
   getOrderByPelapakId
 } from '../controller/order.js';
 import {
+  countVoucherUsagePerMonth,
   createVoucher,
   deleteVoucherById,
   deleteVoucherUsageByID,
@@ -98,5 +99,6 @@ router.post('/api/v1/giveVoucher', giveVoucher);
 router.get('/api/v1/getAllvoucherUsage', getAllVoucherUsages);
 router.delete('/api/v1/deleteVoucherUser/:id', deleteVoucherUsageById);
 router.get('/api/v1/voucherUsageUser/:userId', getVoucherUsageByUserId);
+router.get('/api/v1/getVoucherPerMounth', countVoucherUsagePerMonth);
 
 export default router;
