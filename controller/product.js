@@ -141,7 +141,10 @@ export const getProductByIdUser = async (req, res) => {
     // Mencari produk yang dimiliki oleh pelapak
     const products = await Product.findAll({
       where: { pelapakId },
-      include: [{ model: Image, attributes: ['filename', 'url'] }]
+      include: [
+        { model: Image, attributes: ['filename', 'url'] },
+        { model: User, as: 'user', attributes: ['name', 'email'] }
+      ]
     });
 
     res.json(products);

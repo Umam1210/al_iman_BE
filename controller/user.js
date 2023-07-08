@@ -174,7 +174,7 @@ export const Login = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({ msg: 'Email tidak ditemukan' });
+      return res.status(404).json({ msg: 'Email tidak terdaftar' });
     }
 
     const match = await bcrypt.compare(req.body.password, user.password);

@@ -382,3 +382,20 @@ export const countVoucherUsagePerMonth = async (req, res) => {
     res.status(500).json({ errorMessage: 'Gagal menghitung voucher_usage per bulan' });
   }
 };
+
+// export const getVoucherUsageByIdUser = async (req, res) => {
+//   try {
+//     const { userId } = req.params;
+
+//     const voucherUsages = await VoucherUsage.findAll({
+//       where: {
+//         userId
+//       }
+//     });
+
+//     res.json(voucherUsages);
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ errorMessage: error.message });
+//   }
+// };
