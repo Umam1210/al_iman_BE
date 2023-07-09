@@ -266,7 +266,7 @@ export const getUserById = async (req, res) => {
 export const editUser = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { name, email, role, kontak, alamat } = req.body;
+    const { name, email, role, kontak, alamat, password } = req.body;
 
     // Mencari pengguna berdasarkan ID
     const user = await User.findByPk(userId);
@@ -281,8 +281,13 @@ export const editUser = async (req, res) => {
     user.role = role;
     user.kontak = kontak;
     user.alamat = alamat;
+    if (password) {
+      const saltRounds = 10;
+      const salt = await bcrypt.genSalt(saltRounds);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      user.password = hashedPassword;
+    }
 
-    // Menyimpan perubahan ke database
     await user.save();
     console.log(req.headers);
     res.json(user);
