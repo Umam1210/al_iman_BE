@@ -69,37 +69,37 @@ router.get('/api/v1/pelapak/search', searchPelapak);
 router.get('/api/v1/getPelapakById/:id', getPelapakByID);
 
 // product
-router.get('/api/v1/products', getProducts);
-router.get('/api/v1/product/:productId', getProductByid);
-router.get('/api/v1/user/:pelapakId', getProductByIdUser);
-router.post('/api/v1/addProduct', upload.array('image'), addProduct);
-router.delete('/api/v1/product/:productId', deleteProductById);
-router.patch('/api/v1/editProduct/:productId', upload.array('image'), editProductById);
+router.get('/api/v1/products', getProducts); //done
+router.get('/api/v1/product/:productId', getProductByid); //done
+router.get('/api/v1/user/:pelapakId', getProductByIdUser); //done
+router.post('/api/v1/addProduct', upload.array('image'), addProduct); //done
+router.delete('/api/v1/product/:productId', deleteProductById); //done
+router.patch('/api/v1/editProduct/:productId', upload.array('image'), editProductById); //done
 router.get('/api/v1/searchProduct', searchProductByName);
 router.get('/api/v1/searchProductPelapak/:pelapakId', searchProductByPelapak);
 
 // order
-router.get('/api/v1/orders', getOrders);
-router.get('/api/v1/order/:orderId', getOrderById);
-router.get('/api/v1/orderUser/:userId', getOrdersByUserId);
-router.post('/api/v1/orders', createOrder);
+router.get('/api/v1/orders', getOrders); //done
+router.get('/api/v1/order/:orderId', getOrderById); //done
+router.get('/api/v1/orderUser/:userId', getOrdersByUserId); //done
+router.post('/api/v1/orders', createOrder); //done
 router.delete('/api/v1/deleteOrder/:orderId', deleteOrderById);
 router.put('/api/v1/editOrder/:orderId', editOrderById);
-router.get('/api/v1/getMountly', getMonthlySales);
-router.get('/api/v1/orderPelapak/:pelapakId', getOrderByPelapakId);
+router.get('/api/v1/getMountly', getMonthlySales); //done
+router.get('/api/v1/orderPelapak/:pelapakId', getOrderByPelapakId); //done
 
 // voucher
-router.get('/api/v1/vouchers', checkToken, getVouchers);
-router.get('/api/v1/voucher/:voucherId', getVoucherById);
-router.get('/api/v1/userVoucher/:userId', getVoucherByUserId);
-router.post('/api/v1/createVoucher', createVoucher);
-router.put('/api/v1/editVoucher/:voucherId', editVoucherById);
-router.delete('/api/v1/deleteVoucher/:voucherId', deleteVoucherById);
+router.get('/api/v1/vouchers', checkToken, getVouchers); //done
+router.get('/api/v1/voucher/:voucherId', getVoucherById); //done
+router.get('/api/v1/userVoucher/:userId', getVoucherByUserId); //done
+router.post('/api/v1/createVoucher', createVoucher); //done
+router.put('/api/v1/editVoucher/:voucherId', editVoucherById); //done
+router.delete('/api/v1/deleteVoucher/:voucherId', deleteVoucherById); //done
 router.delete('/api/v1/deleteVoucherUsage/:voucherId', deleteVoucherUsageByID);
 router.get('/api/v1/searchVoucher', searchVoucher);
-router.post('/api/v1/giveVoucher', giveVoucher);
-router.get('/api/v1/getAllvoucherUsage', getAllVoucherUsages);
-router.delete('/api/v1/deleteVoucherUser/:id', deleteVoucherUsageById);
+router.post('/api/v1/giveVoucher', giveVoucher); //done
+router.get('/api/v1/getAllvoucherUsage', getAllVoucherUsages); //done
+router.delete('/api/v1/deleteVoucherUser/:id', deleteVoucherUsageById); //done
 router.get('/api/v1/voucherUsageUser/:userId', getVoucherUsageByUserId);
 router.get('/api/v1/getVoucherPerMounth', countVoucherUsagePerMonth);
 
