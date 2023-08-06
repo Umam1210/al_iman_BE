@@ -3,6 +3,7 @@ import { Image, Product } from '../models/productModel.js';
 import { User } from '../models/userModels.js';
 import path from 'path';
 import { Op } from 'sequelize';
+import { v2 as cloudinary } from 'cloudinary';
 
 // mengambil semua data product
 export const getProducts = async (req, res) => {
@@ -43,9 +44,9 @@ export const getProductByid = async (req, res) => {
 
 // Konfigurasi multer
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
+  // destination: (req, file, cb) => {
+  //   cb(null, 'uploads/');
+  // },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
     const fileName = `${Date.now()}${ext}`;
@@ -53,12 +54,97 @@ const storage = multer.diskStorage({
   }
 });
 
-// Konfigurasi multer
 export const upload = multer({ storage: storage });
 
+cloudinary.config({
+  cloud_name: 'dm5jqoxvb',
+  api_key: '693821471851547',
+  api_secret: 'YgoClzr-fCC6rSpSG0u-L87cHgM'
+});
+
+async function uploadImageToCloudinary(file) {
+  try {
+    const result = await cloudinary.uploader.upload(file.path, {
+      folder: 'al-iman-boga', // Nama folder di Cloudinary untuk menyimpan gambar (opsional)
+      tags: 'al-iman-boga' // Tags yang akan ditambahkan pada gambar di Cloudinary (opsional)
+    });
+    return result.secure_url;
+  } catch (error) {
+    throw new Error(`Gagal mengunggah gambar ke Cloudinary: ${error.message}`);
+  }
+}
+
 // menambahkan data
+// export const addProduct = async (req, res) => {
+//   try {
+//     const { name, harga, stock, deskripsi, pelapakId, status } = req.body;
+
+//     // Mencari pengguna berdasarkan pelapakId
+//     const user = await User.findOne({
+//       where: { id: pelapakId },
+//       attributes: ['name', 'email']
+//     });
+
+//     if (!user) {
+//       return res.status(404).json({ errorMessage: 'Data pengguna tidak ditemukan' });
+//     }
+
+//     // Membuat produk baru dengan userId dari pelapak yang ditemukan
+//     const product = await Product.create({
+//       name,
+//       harga,
+//       stock,
+//       deskripsi,
+//       pelapakId,
+//       status
+//     });
+
+//     const { files } = req;
+
+//     if (files && files.length > 0) {
+//       const imageUrls = [];
+//       for (const file of files) {
+//         const ext = path.extname(file.originalname);
+//         const fileName = file.filename;
+//         const url = `${req.protocol}://${req.get('host')}/uploads/${fileName}`;
+//         const allowedTypes = ['.png', '.jpg', '.jpeg'];
+
+//         if (!allowedTypes.includes(ext.toLowerCase())) {
+//           return res.status(422).json({ errorMessage: 'Jenis file gambar tidak valid' });
+//         }
+
+//         if (file.size > 5000000) {
+//           return res.status(422).json({ errorMessage: 'Ukuran gambar harus kurang dari 5 MB' });
+//         }
+
+//         imageUrls.push(url);
+
+//         await Image.create({
+//           filename: fileName,
+//           data: file.buffer,
+//           productId: product.id,
+//           url: url
+//         });
+//       }
+
+//       res.json({
+//         message: 'Produk berhasil ditambahkan'
+//         // imageUrls: imageUrls
+//       });
+//     } else {
+//       res.json({
+//         message: 'Produk berhasil ditambahkan'
+//       });
+//     }
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ errorMessage: error.message });
+//   }
+// };
+
 export const addProduct = async (req, res) => {
   try {
+    // Mendapatkan data dari request body
     const { name, harga, stock, deskripsi, pelapakId, status } = req.body;
 
     // Mencari pengguna berdasarkan pelapakId
@@ -86,32 +172,21 @@ export const addProduct = async (req, res) => {
     if (files && files.length > 0) {
       const imageUrls = [];
       for (const file of files) {
-        const ext = path.extname(file.originalname);
-        const fileName = file.filename;
-        const url = `${req.protocol}://${req.get('host')}/uploads/${fileName}`;
-        const allowedTypes = ['.png', '.jpg', '.jpeg'];
-
-        if (!allowedTypes.includes(ext.toLowerCase())) {
-          return res.status(422).json({ errorMessage: 'Jenis file gambar tidak valid' });
-        }
-
-        if (file.size > 5000000) {
-          return res.status(422).json({ errorMessage: 'Ukuran gambar harus kurang dari 5 MB' });
-        }
-
-        imageUrls.push(url);
+        // Mengunggah gambar ke Cloudinary dan menyimpan informasi gambar ke database
+        const imageUrl = await uploadImageToCloudinary(file);
+        imageUrls.push(imageUrl);
 
         await Image.create({
-          filename: fileName,
+          filename: file.originalname,
           data: file.buffer,
           productId: product.id,
-          url: url
+          url: imageUrl
         });
       }
 
       res.json({
-        message: 'Produk berhasil ditambahkan'
-        // imageUrls: imageUrls
+        message: 'Produk berhasil ditambahkan',
+        imageUrls: imageUrls // Array berisi URL gambar yang diunggah ke Cloudinary
       });
     } else {
       res.json({
@@ -249,6 +324,79 @@ export const deleteProductById = async (req, res) => {
 //     res.status(500).json({ errorMessage: error.message });
 //   }
 // };
+// export const editProductById = async (req, res) => {
+//   try {
+//     const { productId } = req.params;
+//     const { name, harga, stock, deskripsi, pelapakId, visibility } = req.body;
+
+//     console.log('Request Body:', req.body);
+//     console.log('Request params:', req.params);
+
+//     const product = await Product.findByPk(productId);
+
+//     if (!product) {
+//       return res.status(404).json({ errorMessage: 'Produk tidak ditemukan' });
+//     }
+
+//     const existingImages = await product.getImages(); // Mengambil gambar-gambar terkait produk
+//     const existingImageUrls = existingImages.map((image) => image.url); // Menyimpan URL gambar yang ada saat ini
+
+//     product.name = name;
+//     product.harga = harga;
+//     product.stock = stock;
+//     product.visibility = visibility;
+//     product.deskripsi = deskripsi;
+//     product.pelapakId = pelapakId;
+
+//     await product.save();
+
+//     const { files } = req;
+//     if (files && files.length > 0) {
+//       await Image.destroy({ where: { productId } });
+
+//       const imageUrls = [];
+//       for (const file of files) {
+//         const ext = path.extname(file.originalname);
+//         const fileName = file.filename;
+//         const url = `${req.protocol}://${req.get('host')}/uploads/${fileName}`;
+//         const allowedTypes = ['.png', '.jpg', '.jpeg'];
+
+//         if (!allowedTypes.includes(ext.toLowerCase())) {
+//           return res.status(422).json({ errorMessage: 'Jenis file gambar tidak valid' });
+//         }
+
+//         if (file.size > 5000000) {
+//           return res.status(422).json({ errorMessage: 'Ukuran gambar harus kurang dari 5 MB' });
+//         }
+
+//         imageUrls.push(url);
+
+//         await Image.create({
+//           filename: fileName,
+//           data: file.buffer,
+//           productId: product.id,
+//           url: url
+//         });
+//       }
+
+//       res.json({
+//         message: 'Produk berhasil diubah',
+//         product: product.toJSON(),
+//         imageUrls
+//       });
+//     } else {
+//       res.json({
+//         message: 'Produk berhasil diubah',
+//         product: product.toJSON(),
+//         imageUrls: existingImageUrls // Menggunakan URL gambar yang ada saat ini
+//       });
+//     }
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ errorMessage: error.message });
+//   }
+// };
+
 export const editProductById = async (req, res) => {
   try {
     const { productId } = req.params;
@@ -283,7 +431,6 @@ export const editProductById = async (req, res) => {
       for (const file of files) {
         const ext = path.extname(file.originalname);
         const fileName = file.filename;
-        const url = `${req.protocol}://${req.get('host')}/uploads/${fileName}`;
         const allowedTypes = ['.png', '.jpg', '.jpeg'];
 
         if (!allowedTypes.includes(ext.toLowerCase())) {
@@ -294,13 +441,14 @@ export const editProductById = async (req, res) => {
           return res.status(422).json({ errorMessage: 'Ukuran gambar harus kurang dari 5 MB' });
         }
 
-        imageUrls.push(url);
+        // Mengunggah gambar ke Cloudinary dan menyimpan informasi gambar ke database
+        const imageUrl = await uploadImageToCloudinary(file);
+        imageUrls.push(imageUrl);
 
         await Image.create({
           filename: fileName,
-          data: file.buffer,
           productId: product.id,
-          url: url
+          url: imageUrl
         });
       }
 
